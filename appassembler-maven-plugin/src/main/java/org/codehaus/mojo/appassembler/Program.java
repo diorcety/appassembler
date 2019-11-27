@@ -29,6 +29,7 @@ import java.util.List;
 import java.util.Set;
 
 import org.apache.maven.plugins.annotations.Parameter;
+import org.codehaus.plexus.configuration.xml.XmlPlexusConfiguration;
 
 /**
  * @author <a href="mailto:kristian.nordal@gmail.com">Kristian Nordal</a>
@@ -78,6 +79,12 @@ public class Program
      */
     @Parameter
     private Set<String> platforms;
+
+    @Parameter
+    private File launch4jConfigFile;
+
+    @Parameter
+    private XmlPlexusConfiguration launch4jConfig;
 
     /**
      * The default constructor.
@@ -271,4 +278,20 @@ public class Program
         this.binFolder = binFolder;
     }
 
+
+    public File getLaunch4jConfigFile() {
+        return launch4jConfigFile;
+    }
+
+    public void setLaunch4jConfigFile(File launch4jConfigFile) {
+        this.launch4jConfigFile = launch4jConfigFile;
+    }
+
+    public XmlPlexusConfiguration getLaunch4jConfig() {
+        return launch4jConfig;
+    }
+
+    public void setLaunch4jConfig(XmlPlexusConfiguration launch4jConfig) {
+        this.launch4jConfig = launch4jConfig;
+    }
 }

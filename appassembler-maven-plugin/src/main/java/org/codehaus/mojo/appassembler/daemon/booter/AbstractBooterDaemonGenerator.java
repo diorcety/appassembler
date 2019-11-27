@@ -63,6 +63,8 @@ public abstract class AbstractBooterDaemonGenerator
     public void generate( DaemonGenerationRequest request )
         throws DaemonGeneratorException
     {
+        super.generate(request);
+
         Daemon daemon = request.getDaemon();
         JvmSettings jvmSettings = daemon.getJvmSettings();
 

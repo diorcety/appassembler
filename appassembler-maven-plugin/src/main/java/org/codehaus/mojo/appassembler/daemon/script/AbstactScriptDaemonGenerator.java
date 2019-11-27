@@ -24,7 +24,17 @@ package org.codehaus.mojo.appassembler.daemon.script;
  * SOFTWARE.
  */
 
+import org.apache.commons.io.IOUtils;
+import org.codehaus.mojo.appassembler.daemon.DaemonGenerationRequest;
 import org.codehaus.mojo.appassembler.daemon.DaemonGenerator;
+import org.codehaus.mojo.appassembler.daemon.DaemonGeneratorException;
+import org.codehaus.mojo.appassembler.model.Daemon;
+import org.codehaus.mojo.appassembler.util.XmlPlexusConfigurationWriter;
+import org.codehaus.plexus.configuration.xml.XmlPlexusConfiguration;
+
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.regex.Pattern;
 
 /**
  * The abstract script daemon generator which contains all common parameters and methods for
@@ -33,8 +43,7 @@ import org.codehaus.mojo.appassembler.daemon.DaemonGenerator;
  * @author <a href="mailto:khmarbaise@soebes.de">Karl-Heinz Marbaise</a>
  */
 public abstract class AbstactScriptDaemonGenerator
-    implements DaemonGenerator
-{
+        implements DaemonGenerator {
     /**
      * @plexus.requirement
      */
@@ -42,13 +51,77 @@ public abstract class AbstactScriptDaemonGenerator
 
     private final String platformName;
 
-    public AbstactScriptDaemonGenerator( String platformName )
-    {
+    private static Pattern WINDOWS_PATTERN = Pattern.compile("\"%([^\"]+)%\"");
+
+    public AbstactScriptDaemonGenerator(String platformName) {
         this.platformName = platformName;
     }
 
-    public String getPlatformName()
-    {
+    public String getPlatformName() {
         return platformName;
+    }
+
+    @Override
+    public void generate(DaemonGenerationRequest generationRequest) throws DaemonGeneratorException {
+        if (generationRequest.getLaunch4jConfigFile() != null && Platform.WINDOWS_NAME.equals(platformName)) {
+            Platform platform = Platform.getInstance(platformName);
+
+            XmlPlexusConfiguration launch4jConfig = generationRequest.getLaunch4jConfig();
+            if (launch4jConfig != null) {
+                Daemon daemon = generationRequest.getDaemon();
+
+                XmlPlexusConfiguration basedirVar = new XmlPlexusConfiguration("var");
+                basedirVar.setValue("BASEDIR=%EXEDIR%" + platform.getSeparator() + "..");
+                launch4jConfig.addChild(basedirVar);
+
+                XmlPlexusConfiguration repoVar = new XmlPlexusConfiguration("var");
+                repoVar.setValue("REPO=%BASEDIR%" + platform.getSeparator() + "lib");
+                launch4jConfig.addChild(repoVar);
+
+                // cmdLine
+                XmlPlexusConfiguration cmdLine = (XmlPlexusConfiguration) launch4jConfig.getChild("cmdLine");
+                cmdLine.setValue(platform.getAppArguments(daemon));
+
+                // mainClass
+                XmlPlexusConfiguration classPath = (XmlPlexusConfiguration) launch4jConfig.getChild("classPath");
+                XmlPlexusConfiguration mainClass = (XmlPlexusConfiguration) classPath.getChild("mainClass");
+                mainClass.setValue(daemon.getMainClass());
+
+                // cp
+                for (String s : platform.getClassPathList(daemon)) {
+                    XmlPlexusConfiguration cp = new XmlPlexusConfiguration("cp");
+                    cp.setValue(WINDOWS_PATTERN.matcher(s).replaceAll("%$1%"));
+                    classPath.addChild(cp);
+                }
+
+                // jre
+                XmlPlexusConfiguration jre = (XmlPlexusConfiguration) launch4jConfig.getChild("jre");
+                XmlPlexusConfiguration appNameOpt = new XmlPlexusConfiguration("opt");
+                appNameOpt.setValue("-Dapp.name=" + daemon.getId()+ "");
+                jre.addChild(appNameOpt);
+                XmlPlexusConfiguration appRepoOpt = new XmlPlexusConfiguration("opt");
+                appRepoOpt.setValue("-Dapp.repo=%REPO%");
+                jre.addChild(appRepoOpt);
+                XmlPlexusConfiguration appHomeOpt = new XmlPlexusConfiguration("opt");
+                appHomeOpt.setValue("-Dapp.home=%BASEDIR%");
+                jre.addChild(appHomeOpt);
+                XmlPlexusConfiguration basedirOpt = new XmlPlexusConfiguration("opt");
+                basedirOpt.setValue("-Dbasedir=%BASEDIR%");
+                jre.addChild(basedirOpt);
+
+                FileWriter writer = null;
+                try {
+                    writer = new FileWriter(generationRequest.getLaunch4jConfigFile());
+                    XmlPlexusConfigurationWriter xmlWriter = new XmlPlexusConfigurationWriter();
+                    xmlWriter.write(launch4jConfig, writer);
+                } catch (IOException e) {
+                    throw new DaemonGeneratorException("Can't generate file: " + generationRequest.getLaunch4jConfigFile(), e);
+                } finally {
+                    if (writer != null) {
+                        IOUtils.closeQuietly(writer);
+                    }
+                }
+            }
+        }
     }
 }

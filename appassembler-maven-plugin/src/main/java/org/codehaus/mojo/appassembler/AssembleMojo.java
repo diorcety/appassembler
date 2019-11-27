@@ -31,7 +31,6 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.StringTokenizer;
 
@@ -45,7 +44,6 @@ import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.codehaus.mojo.appassembler.daemon.DaemonGenerationRequest;
 import org.codehaus.mojo.appassembler.daemon.DaemonGeneratorException;
-import org.codehaus.mojo.appassembler.daemon.script.Platform;
 import org.codehaus.mojo.appassembler.model.Classpath;
 import org.codehaus.mojo.appassembler.model.Dependency;
 import org.codehaus.mojo.appassembler.model.Directory;
@@ -289,6 +287,8 @@ public class AssembleMojo
                     programToDaemon( program, artifactRepositoryLayout );
                 DaemonGenerationRequest request =
                     new DaemonGenerationRequest( daemon, mavenProject, localRepository, assembleDirectory, binFolder );
+                request.setLaunch4jConfig(program.getLaunch4jConfig());
+                request.setLaunch4jConfigFile(program.getLaunch4jConfigFile());
                 request.setStubDaemon( request.getDaemon() );
 
                 request.setPlatform( platform );

@@ -29,8 +29,10 @@ import java.io.File;
 import org.apache.maven.artifact.repository.ArtifactRepository;
 import org.apache.maven.artifact.repository.layout.ArtifactRepositoryLayout;
 import org.apache.maven.artifact.repository.layout.DefaultRepositoryLayout;
+import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
 import org.codehaus.mojo.appassembler.model.Daemon;
+import org.codehaus.plexus.configuration.xml.XmlPlexusConfiguration;
 
 /**
  * @author <a href="mailto:trygve.laugstol@objectware.no">Trygve Laugst&oslash;l</a>
@@ -59,6 +61,10 @@ public class DaemonGenerationRequest
     private String outputFileNameMapping;
 
     private ArtifactRepositoryLayout repositoryLayout = new DefaultRepositoryLayout();
+
+    private File launch4jConfigFile;
+
+    private XmlPlexusConfiguration launch4jConfig;
 
     /**
      * The constructor for the request.
@@ -292,5 +298,21 @@ public class DaemonGenerationRequest
     public void setBinScriptName( String binScriptName )
     {
         this.binScriptName = binScriptName;
+    }
+
+    public File getLaunch4jConfigFile() {
+        return launch4jConfigFile;
+    }
+
+    public void setLaunch4jConfigFile(File launch4jConfigFile) {
+        this.launch4jConfigFile = launch4jConfigFile;
+    }
+
+    public XmlPlexusConfiguration getLaunch4jConfig() {
+        return launch4jConfig;
+    }
+
+    public void setLaunch4jConfig(XmlPlexusConfiguration launch4jConfig) {
+        this.launch4jConfig = launch4jConfig;
     }
 }

@@ -31,6 +31,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -272,26 +273,13 @@ public class Platform
     // This part depend on the platform-specific parts
     // -----------------------------------------------------------------------
 
-    /**
-     * Get the ClassPath based on the given Daemon.
-     *
-     * @param daemon The Daemon instance.
-     * @return The classpath as a string.
-     * @throws DaemonGeneratorException in case of an error.
-     */
-    public String getClassPath( Daemon daemon )
-        throws DaemonGeneratorException
-    {
+    public List<String> getClassPathList( Daemon daemon ) throws DaemonGeneratorException {
         List<ClasspathElement> classpath = daemon.getAllClasspathElements();
-
-        StringBuilder classpathBuffer = new StringBuilder();
+        List<String> ret = new LinkedList<String>();
 
         for ( ClasspathElement classpathElement : classpath )
         {
-            if ( classpathBuffer.length() > 0 )
-            {
-                classpathBuffer.append( getPathSeparator() );
-            }
+            StringBuilder classpathBuffer = new StringBuilder();
 
             // -----------------------------------------------------------------------
             //
@@ -313,10 +301,37 @@ public class Platform
             else
             {
                 throw new DaemonGeneratorException( "Unknown classpath element type: "
-                    + classpathElement.getClass().getName() );
+                        + classpathElement.getClass().getName() );
             }
 
             classpathBuffer.append( StringUtils.replace( classpathElement.getRelativePath(), "/", getSeparator() ) );
+            ret.add(classpathBuffer.toString());
+        }
+        return ret;
+    }
+
+    /**
+     * Get the ClassPath based on the given Daemon.
+     *
+     * @param daemon The Daemon instance.
+     * @return The classpath as a string.
+     * @throws DaemonGeneratorException in case of an error.
+     */
+
+    public String getClassPath( Daemon daemon )
+        throws DaemonGeneratorException
+    {
+        List<String> classpath = getClassPathList(daemon);
+
+        StringBuilder classpathBuffer = new StringBuilder();
+
+        for ( String classpathElement : classpath )
+        {
+            if ( classpathBuffer.length() > 0 )
+            {
+                classpathBuffer.append( getPathSeparator() );
+            }
+            classpathBuffer.append( classpathElement );
         }
 
         return classpathBuffer.toString();
