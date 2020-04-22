@@ -358,7 +358,11 @@ public class Platform
         return result.toString();
     }
 
-    private List<String> convertArguments( List<String> strings )
+    private List<String> convertArguments( List<String> strings) {
+        return convertArguments(strings, "");
+    }
+
+    private List<String> convertArguments( List<String> strings , String prefix)
     {
         if ( strings == null )
         {
@@ -368,7 +372,7 @@ public class Platform
         ArrayList<String> result = new ArrayList<String>();
         for ( String argument : strings )
         {
-            result.add( interpolateBaseDirAndRepo( argument ) );
+            result.add( prefix + interpolateBaseDirAndRepo( argument ) );
         }
 
         return result;
@@ -381,27 +385,24 @@ public class Platform
      * @return The created string which contains <code>-X</code> options for the JVM settings.
      * @throws IOException in case of an error.
      */
-    public String getExtraJvmArguments( JvmSettings jvmSettings )
-        throws IOException
-    {
+    public List<String> getExtraJvmArguments( JvmSettings jvmSettings ) {
+        List<String> list = new LinkedList<String>();
         if ( jvmSettings == null )
         {
-            return "";
+            return list;
         }
 
-        String vmArgs = "";
+        addJvmSetting( "-Xms", jvmSettings.getInitialMemorySize(), list );
+        addJvmSetting( "-Xmx", jvmSettings.getMaxMemorySize(), list );
+        addJvmSetting( "-Xss", jvmSettings.getMaxStackSize(), list );
 
-        vmArgs = addJvmSetting( "-Xms", jvmSettings.getInitialMemorySize(), vmArgs );
-        vmArgs = addJvmSetting( "-Xmx", jvmSettings.getMaxMemorySize(), vmArgs );
-        vmArgs = addJvmSetting( "-Xss", jvmSettings.getMaxStackSize(), vmArgs );
+        list.addAll(convertArguments( jvmSettings.getExtraArguments() ));
+        list.addAll(convertArguments( jvmSettings.getSystemProperties(), "-D" ));
 
-        vmArgs += arrayToString( convertArguments( jvmSettings.getExtraArguments() ), "" );
-        vmArgs += arrayToString( convertArguments( jvmSettings.getSystemProperties() ), "-D" );
-
-        return vmArgs.trim();
+        return list;
     }
 
-    private String arrayToString( List<String> strings, String separator )
+    public static String arrayToString( List<String> strings, String separator )
     {
         String string = "";
 
@@ -455,14 +456,12 @@ public class Platform
         return appArguments;
     }
 
-    private String addJvmSetting( String argType, String extraJvmArgument, String vmArgs )
+    private void addJvmSetting( String argType, String extraJvmArgument, List<String> vmArgs )
     {
-        if ( StringUtils.isEmpty( extraJvmArgument ) )
+        if ( !StringUtils.isEmpty( extraJvmArgument ) )
         {
-            return vmArgs;
+            vmArgs.add(argType + extraJvmArgument);
         }
-
-        return vmArgs + " " + argType + extraJvmArgument;
     }
 
     /**

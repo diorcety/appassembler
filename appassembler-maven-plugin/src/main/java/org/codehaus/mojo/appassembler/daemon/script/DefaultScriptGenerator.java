@@ -181,7 +181,7 @@ public class DefaultScriptGenerator
             Map<Object, Object> context = new HashMap<Object, Object>();
             context.put( "MAINCLASS", daemon.getMainClass() );
             context.put( "CLASSPATH", platform.getClassPath( daemon ) );
-            context.put( "EXTRA_JVM_ARGUMENTS", platform.getExtraJvmArguments( daemon.getJvmSettings() ) );
+            context.put( "EXTRA_JVM_ARGUMENTS", Platform.arrayToString( platform.getExtraJvmArguments( daemon.getJvmSettings() ), "" ).trim() );
             context.put( "APP_NAME", daemon.getId() );
             context.put( "ENV_SETUP", platform.getEnvSetup( daemon, binFolder ) );
             context.put( "REPO", daemon.getRepositoryName() );

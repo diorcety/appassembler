@@ -96,6 +96,11 @@ public abstract class AbstactScriptDaemonGenerator
 
                 // jre
                 XmlPlexusConfiguration jre = (XmlPlexusConfiguration) launch4jConfig.getChild("jre");
+                for (String extraJvmArgument : platform.getExtraJvmArguments(generationRequest.getDaemon().getJvmSettings())) {
+                    XmlPlexusConfiguration appNameOpt = new XmlPlexusConfiguration("opt");
+                    appNameOpt.setValue(extraJvmArgument);
+                    jre.addChild(appNameOpt);
+                }
                 XmlPlexusConfiguration appNameOpt = new XmlPlexusConfiguration("opt");
                 appNameOpt.setValue("-Dapp.name=" + daemon.getId()+ "");
                 jre.addChild(appNameOpt);
